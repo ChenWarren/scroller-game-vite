@@ -17,13 +17,14 @@ function game() {
   function animation(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     player.draw(ctx);
-    player.update();
+    player.update(input);
     requestAnimationFrame(animation);
   }
   
   animation(player, ctx);
 }
 
+// Detect keyboard input
 class InputHandler {
   constructor(){
     this.keys = new Set();
@@ -32,7 +33,8 @@ class InputHandler {
            e.key === "ArrowDown" || 
            e.key === "ArrowLeft" || 
            e.key === "ArrowRight"
-          )) {
+        )) {
+        this.keys.add(e.key);
       }
     })
     window.addEventListener("keyup", (e) => {
@@ -47,6 +49,7 @@ class InputHandler {
   }
 }
 
+// Player class
 class Player {
   constructor(gameWidth, gameHeight) {
     this.gameWidth = gameWidth;
@@ -63,8 +66,20 @@ class Player {
   draw(context) {
     context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height, this.x, this.y, this.width, this.height);
   }
-  update() {
+  // Player update method
+  update(input) {
+    if( input.keys.has("ArrowRight")){
+      this.speed = 5;
+    } else if(input.keys.has("ArrowLeft")){
+      this.speed = -5;
+    } else {
+      this.speed = 0;
+    }
+    
     this.x += this.speed;
+    if(this.x<0) this.x =0;
+    if(this.x > this.gameWidth - this.width) this.x = this.gameWidth - this.width;
+  
   }
 }
 
