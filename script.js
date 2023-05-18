@@ -11,22 +11,43 @@ function game() {
   const ctx = canvas.getContext('2d');
   canvas.width = 800;
   canvas.height = 720;
+  let enemies = [];
   const background = new Background(canvas.width, canvas.height);
   const userInput = new InputHandler();
   const player = new Player(canvas.width, canvas.height);
-  const enemy = new Enemy(canvas.width, canvas.height);
 
-  function animation(){
+  let lastEnemyAddedTime = 0;
+  let enemyTimer = 0;
+  let enemyInterval = 2000;
+  let randomEnemyInterval = Math.random() * 1000 - 500;
+
+  function handleEnemies(deltaTime) {
+    if( enemyTimer > enemyInterval + randomEnemyInterval){
+      enemies.push(new Enemy(canvas.width, canvas.height));
+      randomEnemyInterval = Math.random() * 1000 - 500;
+      enemyTimer = 0;
+    } else {
+      enemyTimer += deltaTime;
+    }
+    enemies.forEach( enemy => {
+      enemy.draw(ctx);
+      enemy.update();
+    })
+  }
+
+  function animation(timeStamp){
+    const deltaTime = timeStamp - lastEnemyAddedTime;
+    lastEnemyAddedTime = timeStamp;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     background.draw(ctx);
     player.draw(ctx);
-    enemy.draw(ctx);
+    handleEnemies(deltaTime);
     player.update(userInput);
-    background.update();
+    // background.update();
     requestAnimationFrame(animation);
   }
   
-  animation(player, ctx);
+  animation(0);
 }
 
 // Detect keyboard userInput
@@ -120,8 +141,8 @@ class Background {
     context.drawImage(this.image, this.x + this.width - this.speedX, this.y);
   }
   update() {
-    // this.x -= this.speedX;
-    // if(this.x < 0-this.width) this.x = 0;
+    this.x -= this.speedX;
+    if(this.x < 0-this.width) this.x = 0;
   }
 }
 
@@ -135,9 +156,13 @@ class Enemy {
     this.x = this.canvasWidth - this.width;
     this.y = this.canvasHeight - this.height;
     this.frameX = 0;
+    this.speedX = 5;
   }
   draw(context) {
     context.drawImage(this.image, this.frameX * this.width, 0, this.width, this.height, this.x, this.y, this.width, this.height);
+  }
+  update() {
+    this.x -= this.speedX;
   }
 }
 
