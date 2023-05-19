@@ -33,8 +33,11 @@ function game() {
     enemies.forEach( enemy => {
       enemy.draw(ctx);
       enemy.update(deltaTime);
+      if(enemy.mardedForDeletion) {
+        score++;
+      }
     })
-    enemies = enemies.filter( enemy => !enemy.markedForDeletion);
+    enemies = enemies.filter( enemy => !enemy.mardedForDeletion);
   }
 
   function displayScore(context) {
@@ -51,7 +54,7 @@ function game() {
     background.draw(ctx);
     player.draw(ctx);
     handleEnemies(deltaTime);
-    player.update(userInput, deltaTime);
+    player.update(userInput, deltaTime, enemies);
     // background.update();
     displayScore(ctx);
     requestAnimationFrame(animation);
@@ -106,10 +109,16 @@ class Player {
     this.gravity = 0.9;
   }
   draw(context) {
+    context.beginPath();
+    context.arc(this.x + this.width/2 + 10, this.y + this.height/2 + 20, this.width/2-30, 0, Math.PI * 2);
+    context.stroke();
     context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height, this.x, this.y, this.width, this.height);
   }
   // Player update method
-  update(userInput, deltaTime) {
+  update(userInput, deltaTime, enemies) {
+    // Collision detection
+
+    // animation
     if(this.frameTimer > this.frameInterval) {
       if(this.frameX > this.maxFrame) this.frameX = 0;
       else this.frameX++;
@@ -118,6 +127,7 @@ class Player {
       this.frameTimer += deltaTime;
     }
 
+    // Input controls
     if( userInput.keys.has("ArrowRight")){
       this.speedX = 5;
     } else if(userInput.keys.has("ArrowLeft")){
@@ -177,7 +187,7 @@ class Enemy {
     this.width = 160;
     this.height = 119;
     this.image = document.getElementById('enemyImage');
-    this.x = this.canvasWidth - this.width;
+    this.x = this.canvasWidth;
     this.y = this.canvasHeight - this.height;
     this.frameX = 0;
     this.maxFrame = 4;
@@ -188,6 +198,9 @@ class Enemy {
     this.mardedForDeletion = false;
   }
   draw(context) {
+    context.beginPath();
+    context.arc(this.x + this.width/2 -20, this.y + this.height/2, this.width/2-15, 0, Math.PI * 2);
+    context.stroke();
     context.drawImage(this.image, this.frameX * this.width, 0, this.width, this.height, this.x, this.y, this.width, this.height);
   }
   update(deltaTime) {
@@ -199,7 +212,8 @@ class Enemy {
       this.frameTimer += deltaTime;
     }
     this.x -= this.speedX;
-    if(this.x < 0 - this.width) {
+    
+    if(this.x < (0 - this.width)) {
       this.mardedForDeletion = true;
     }
   }
