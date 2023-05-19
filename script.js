@@ -12,6 +12,7 @@ function game() {
   canvas.width = 800;
   canvas.height = 720;
   let enemies = [];
+  let score = 0;
   const background = new Background(canvas.width, canvas.height);
   const userInput = new InputHandler();
   const player = new Player(canvas.width, canvas.height);
@@ -31,8 +32,16 @@ function game() {
     }
     enemies.forEach( enemy => {
       enemy.draw(ctx);
-      enemy.update();
+      enemy.update(deltaTime);
     })
+    enemies = enemies.filter( enemy => !enemy.markedForDeletion);
+  }
+
+  function displayScore(context) {
+    // context.fillStyle = "black";
+    context.font = "30px Helvetica";
+    context.fillText("Score: " + score, 20, 50);
+  
   }
 
   function animation(timeStamp){
@@ -42,8 +51,9 @@ function game() {
     background.draw(ctx);
     player.draw(ctx);
     handleEnemies(deltaTime);
-    player.update(userInput);
+    player.update(userInput, deltaTime);
     // background.update();
+    displayScore(ctx);
     requestAnimationFrame(animation);
   }
   
@@ -85,8 +95,12 @@ class Player {
     this.x = 0;
     this.y = this.canvasHeight - this.height;
     this.image = document.getElementById('playerImage');
-    this.frameX = 1;
+    this.frameX = 0;
     this.frameY = 0;
+    this.maxFrame = 7;
+    this.framePerSecond = 20;
+    this.frameTimer = 0;
+    this.frameInterval = 1000/this.framePerSecond;
     this.speedY = 0;
     this.speedX = 0;
     this.gravity = 0.9;
@@ -95,7 +109,15 @@ class Player {
     context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height, this.x, this.y, this.width, this.height);
   }
   // Player update method
-  update(userInput) {
+  update(userInput, deltaTime) {
+    if(this.frameTimer > this.frameInterval) {
+      if(this.frameX > this.maxFrame) this.frameX = 0;
+      else this.frameX++;
+      this.frameTimer = 0;
+    } else {
+      this.frameTimer += deltaTime;
+    }
+
     if( userInput.keys.has("ArrowRight")){
       this.speedX = 5;
     } else if(userInput.keys.has("ArrowLeft")){
@@ -113,9 +135,11 @@ class Player {
     this.y += this.speedY;
     if(!this.onGround()){
       this.speedY += this.gravity;
+      this.maxFrame = 5;
       this.frameY = 1;
     } else {
       this.speedY = 0;
+      this.maxFrame = 7;
       this.frameY = 0;
     }
     if(this.y > this.canvasHeight - this.height) this.y = this.canvasHeight - this.height;
@@ -156,13 +180,28 @@ class Enemy {
     this.x = this.canvasWidth - this.width;
     this.y = this.canvasHeight - this.height;
     this.frameX = 0;
+    this.maxFrame = 4;
+    this.framePerSecond = 20;
+    this.frameTimer = 0;
+    this.frameInterval = 1000/this.framePerSecond;
     this.speedX = 5;
+    this.mardedForDeletion = false;
   }
   draw(context) {
     context.drawImage(this.image, this.frameX * this.width, 0, this.width, this.height, this.x, this.y, this.width, this.height);
   }
-  update() {
+  update(deltaTime) {
+    if(this.frameTimer > this.frameInterval) {
+      if(this.frameX > this.maxFrame) this.frameX = 0;
+      else this.frameX++;
+      this.frameTimer = 0;
+    } else {
+      this.frameTimer += deltaTime;
+    }
     this.x -= this.speedX;
+    if(this.x < 0 - this.width) {
+      this.mardedForDeletion = true;
+    }
   }
 }
 
