@@ -41,10 +41,15 @@ function game() {
   }
 
   function displayScore(context) {
-    // context.fillStyle = "black";
     context.font = "30px Helvetica";
     context.fillText("Score: " + score, 20, 50);
-  
+  }
+
+  function displayMessage(context, message) {
+    context.fillRect( canvas.width/2 - 200, canvas.height/2 - 100, 400, 200);
+    context.font = "30px Helvetica";
+    context.fillStyle = "white";
+    context.fillText(message, canvas.width/2 - 100, canvas.height/2);
   }
 
   function animation(timeStamp){
@@ -57,7 +62,11 @@ function game() {
     player.update(userInput, deltaTime, enemies);
     // background.update();
     displayScore(ctx);
-    requestAnimationFrame(animation);
+    if(!player.gameOver) {
+      requestAnimationFrame(animation);
+    } else {
+      displayMessage(ctx, "Game Over!");
+    }
   }
   
   animation(0);
@@ -107,6 +116,7 @@ class Player {
     this.speedY = 0;
     this.speedX = 0;
     this.gravity = 0.9;
+    this.gameOver = false;
   }
   draw(context) {
     context.beginPath();
@@ -117,7 +127,14 @@ class Player {
   // Player update method
   update(userInput, deltaTime, enemies) {
     // Collision detection
-
+    enemies.forEach( enemy => {
+      const dx = enemy.x - this.x;
+      const dy = enemy.y - this.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if(distance < enemy.width/2 + this.width/2) {
+        this.gameOver = true;
+      }
+    })
     // animation
     if(this.frameTimer > this.frameInterval) {
       if(this.frameX > this.maxFrame) this.frameX = 0;
